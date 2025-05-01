@@ -1,0 +1,183 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Card Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #3498db;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    h1 {
+      color: white;
+    }
+    #menu, #creditBox, #updateBox, #gameOverBox, #winBox {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      display: none;
+      position: absolute;
+      z-index: 10;
+    }
+    #menu {
+      display: block;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+    }
+    #game {
+      display: none;
+      margin-top: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      gap: 10px;
+      justify-content: center;
+    }
+    .card {
+      width: 60px;
+      height: 80px;
+      background: white;
+      border: 2px solid black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 24px;
+      color: white;
+    }
+    .card.flipped {
+      background-color: grey;
+    }
+    .card.revealed.yellow { background: yellow; color: black; }
+    .card.revealed.red { background: red; }
+    .card.revealed.green { background: green; }
+    .card.revealed.blue { background: lightblue; color: black; }
+    .card.revealed.pink { background: pink; color: black; }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <h1>MEMORY CARD GAME</h1>
+    <p>Kumpulkan Poin: <span id="score">0</span>/∞</p>
+    <button onclick="startGame()">Play</button>
+    <button onclick="showCredit()">Credit</button>
+    <button onclick="showUpdate()">Update</button>
+  </div>  <div id="creditBox">
+    <p>Game dibuat oleh Haris Raya Studio</p>
+    <button onclick="hideBox('creditBox')">Close</button>
+  </div>  <div id="updateBox">
+    <p>GAME INI MASIH TAHAP PENGEMBANGAN HARIS RAYA & CHAT GPT</p>
+    <button onclick="hideBox('updateBox')">Close</button>
+  </div>  <div id="gameOverBox">
+    <p>LU KALAH AWOKAWOK CEMEN!</p>
+    <button onclick="returnToMenu()">Close</button>
+  </div>  <div id="winBox">
+    <p>ANJAYY MENANG AWOKAWOK</p>
+    <button onclick="returnToMenu()">Close</button>
+  </div>  <div id="game">
+    <p>Salah Tebak: <span id="mistakeCount">0</span>/10</p>
+    <div class="grid" id="cardGrid"></div>
+  </div>  <script>
+    const colors = ['yellow', 'red', 'green', 'blue', 'pink'];
+    let cards = [];
+    let flippedCards = [];
+    let mistakes = 0;
+    let score = 0;
+    let matchedPairs = 0;
+
+    function startGame() {
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      document.getElementById('gameOverBox').style.display = 'none';
+      document.getElementById('winBox').style.display = 'none';
+      mistakes = 0;
+      matchedPairs = 0;
+      document.getElementById('mistakeCount').innerText = mistakes;
+      setupCards();
+    }
+
+    function returnToMenu() {
+      document.getElementById('gameOverBox').style.display = 'none';
+      document.getElementById('winBox').style.display = 'none';
+      document.getElementById('menu').style.display = 'block';
+      document.getElementById('game').style.display = 'none';
+    }
+
+    function showCredit() {
+      document.getElementById('creditBox').style.display = 'block';
+    }
+
+    function showUpdate() {
+      document.getElementById('updateBox').style.display = 'block';
+    }
+
+    function hideBox(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function setupCards() {
+      const grid = document.getElementById('cardGrid');
+      grid.innerHTML = '';
+      const pairs = [...colors, ...colors];
+      pairs.sort(() => Math.random() - 0.5);
+      cards = [];
+      pairs.forEach((color, index) => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.color = color;
+        card.addEventListener('click', () => flipCard(card));
+        grid.appendChild(card);
+        cards[index] = card;
+      });
+    }
+
+    function flipCard(card) {
+      if (flippedCards.length >= 2 || card.classList.contains('revealed') || card.style.visibility === 'hidden') return;
+      card.classList.add('revealed', card.dataset.color);
+      flippedCards.push(card);
+
+      if (flippedCards.length === 2) {
+        const [first, second] = flippedCards;
+        if (first.dataset.color === second.dataset.color) {
+          matchedPairs++;
+          setTimeout(() => {
+            first.style.visibility = 'hidden';
+            second.style.visibility = 'hidden';
+            flippedCards = [];
+            if (matchedPairs === 5) {
+              score += 100;
+              document.getElementById('score').innerText = score;
+              document.getElementById('game').style.display = 'none';
+              document.getElementById('winBox').style.display = 'block';
+            }
+          }, 500);
+        } else {
+          mistakes++;
+          document.getElementById('mistakeCount').innerText = mistakes;
+          setTimeout(() => {
+            first.className = 'card';
+            second.className = 'card';
+            flippedCards = [];
+          }, 700);
+          if (mistakes >= 10) {
+            setTimeout(() => {
+              document.getElementById('gameOverBox').style.display = 'block';
+              document.getElementById('game').style.display = 'none';
+            }, 800);
+          }
+        }
+      }
+    }
+  </script></body>
+</html>
